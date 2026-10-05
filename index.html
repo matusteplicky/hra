@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>LOMIDREVO JUNIOR</title>
 <meta name="description" content="LOMIDREVO JUNIOR – vysekaj sa z toho! Pixelová bežecká hra so sekerou, husou, drakmi a vesmírom.">
 <meta name="theme-color" content="#1d2233">
@@ -21,8 +21,9 @@
 <link rel="canonical" href="https://hra.lomidrevojunior.sk/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%93%3C/text%3E%3C/svg%3E">
 <style>
-  html,body{-webkit-tap-highlight-color:transparent;margin:0;height:100%;background:#1d2233;color:#cfd3e8;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
+  html,body{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;margin:0;height:100%;background:#1d2233;color:#cfd3e8;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+  *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
   #wrap{display:flex;align-items:center;justify-content:center;width:100%}
   #stage{grid-area:S;position:relative;width:min(100vw,calc((100vh - 64px)*16/9));width:min(100vw,calc((100dvh - 64px)*16/9));aspect-ratio:16/9;container-type:inline-size;background:#000}
   canvas{image-rendering:pixelated;width:100%;height:100%;display:block;touch-action:none}
@@ -1088,6 +1089,12 @@ holdButton($('btnAxe'),()=>{press('atk');if(state!=='play')startGame();clearInte
 holdButton($('btnPause'),()=>{if(state==='play')paused=!paused});
 window.addEventListener('resize',layoutTouch);window.addEventListener('orientationchange',()=>setTimeout(layoutTouch,200));
 setTouch(TOUCH);window.addEventListener('load',layoutTouch);
+// no pinch-zoom or page scrolling while playing (iOS Safari ignores user-scalable=no, so block the gestures too)
+['gesturestart','gesturechange','gestureend'].forEach(n=>document.addEventListener(n,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1||(e.scale&&e.scale!==1)||TOUCH)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(TOUCH)e.preventDefault()});
+document.addEventListener('selectstart',e=>e.preventDefault());   // nothing on the page can be selected (no blue highlight on long-press / double-tap / Ctrl+A)
+document.addEventListener('dragstart',e=>e.preventDefault());
 addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!TOUCH)setTouch(true)},{passive:true});   // a finger touches the screen: bring the controls back
 
 
