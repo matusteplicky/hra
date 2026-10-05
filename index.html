@@ -8,15 +8,41 @@
 <meta name="theme-color" content="#1d2233">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%93%3C/text%3E%3C/svg%3E">
 <style>
-  html,body{margin:0;height:100%;background:#1d2233;color:#cfd3e8;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
+  html,body{-webkit-tap-highlight-color:transparent;margin:0;height:100%;background:#1d2233;color:#cfd3e8;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center}
-  #stage{position:relative;width:min(100vw,calc((100vh - 64px)*16/9));width:min(100vw,calc((100dvh - 64px)*16/9));aspect-ratio:16/9;container-type:inline-size;background:#000}
+  #wrap{display:flex;align-items:center;justify-content:center;width:100%}
+  #stage{grid-area:S;position:relative;width:min(100vw,calc((100vh - 64px)*16/9));width:min(100vw,calc((100dvh - 64px)*16/9));aspect-ratio:16/9;container-type:inline-size;background:#000}
   canvas{image-rendering:pixelated;width:100%;height:100%;display:block;touch-action:none}
   #bar{min-height:52px;display:flex;align-items:center;justify-content:center;padding:6px 12px;box-sizing:border-box;text-align:center}
+  @media (max-height:500px){#bar{min-height:26px;padding:2px 8px}#strip{font-size:11px}}
   #strip{color:#e8ebff;text-decoration:none;font-size:14px;line-height:1.35}
   #strip b{color:#ffd23f}
   #strip .days{color:#ff9a5a;font-weight:800}
   #strip:hover b{text-decoration:underline}
+  /* ---------- touch controls (only on touch devices) ---------- */
+  .pad{display:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  #padL{grid-area:L}#padR{grid-area:R}
+  body.touch #wrap{display:grid;touch-action:none}
+  body.touch .pad{display:flex;align-items:center;justify-content:center;gap:12px}
+  #wrap[data-mode=side]{grid-template-columns:1fr auto 1fr;grid-template-areas:"L S R";align-items:center}
+  #wrap[data-mode=side] #padR{flex-direction:column}
+  #wrap[data-mode=below]{grid-template-columns:1fr 1fr;grid-template-areas:"S S" "L R";align-items:center;justify-items:center}
+  #wrap[data-mode=below] #padR{flex-direction:row}
+  #wrap[data-mode=overlay]{grid-template-columns:1fr;grid-template-areas:"A";justify-items:center}
+  #wrap[data-mode=overlay]>*{grid-area:A}
+  #wrap[data-mode=overlay] .pad{z-index:6;opacity:.55;pointer-events:none}
+  #wrap[data-mode=overlay] #padL{align-self:end;justify-self:start;margin:0 0 6px calc(50% - var(--sw)/2 + 8px)}
+  #wrap[data-mode=overlay] #padR{align-self:end;justify-self:end;margin:0 calc(50% - var(--sw)/2 + 8px) 6px 0;flex-direction:column}
+  #wrap[data-mode=overlay] .pad>*{pointer-events:auto}
+  #joy{position:relative;width:var(--d);height:var(--d);border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.4);touch-action:none;box-sizing:border-box}
+  #joy i{position:absolute;color:rgba(255,255,255,.55);font-style:normal;font-size:calc(var(--d)*.14);line-height:1}
+  #joy .u{left:50%;top:6%;transform:translateX(-50%)}#joy .d{left:50%;bottom:6%;transform:translateX(-50%)}
+  #joy .l{left:7%;top:50%;transform:translateY(-50%)}#joy .r{right:7%;top:50%;transform:translateY(-50%)}
+  #knob{position:absolute;left:50%;top:50%;width:42%;height:42%;margin:-21% 0 0 -21%;border-radius:50%;background:rgba(255,210,63,.8);border:3px solid #fff3b0;box-sizing:border-box}
+  .tbtn{width:var(--b);height:var(--b);border-radius:50%;border:3px solid rgba(255,255,255,.55);color:#fff;font:800 calc(var(--b)*.19)/1 system-ui,sans-serif;touch-action:none;box-sizing:border-box;padding:0;cursor:pointer;text-shadow:0 1px 2px #000}
+  #btnJump{background:rgba(70,190,110,.5)}#btnAxe{background:rgba(240,80,60,.5)}
+  .tbtn.on{filter:brightness(1.6);transform:scale(.94)}
+  #btnPause{width:calc(var(--b)*.5);height:calc(var(--b)*.5);border-radius:12px;background:rgba(255,255,255,.18);font-size:calc(var(--b)*.2)}
   /* call-to-action card over the game (pause / game over / ending) */
   #cta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(18,13,36,.86);z-index:5}
   #cta[hidden]{display:none}
@@ -39,6 +65,8 @@
 </style>
 </head>
 <body>
+<div id="wrap" data-mode="none" style="--d:110px;--b:90px">
+<div class="pad" id="padL"><div id="joy"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><div id="knob"></div></div></div>
 <div id="stage">
   <canvas id="c"></canvas>
   <div id="cta" hidden>
@@ -54,6 +82,8 @@
     </div>
   </div>
 </div>
+<div class="pad" id="padR"><button class="tbtn" id="btnPause" type="button" aria-label="Pauza">II</button><button class="tbtn" id="btnAxe" type="button">SEKERA</button><button class="tbtn" id="btnJump" type="button">SKOK</button></div>
+</div>
 <noscript>Na hranie je potrebný JavaScript.</noscript>
 <div id="bar">
   <a id="strip" target="_blank" rel="noopener"></a>
@@ -62,6 +92,7 @@
 (()=>{
 const MAXH=6,W=320,H=180,GROUND=150,GRAV=0.28;let hw=12,hh=16;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let TOUCH=window.matchMedia('(pointer:coarse)').matches||/[?&]touch=1/.test(location.search);
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
 const R=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)};
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -228,6 +259,7 @@ addEventListener('keydown',e=>{
   if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
   if(e.repeat)return;
   keys[k]=true;
+  if(TOUCH&&!/[?&]touch=1/.test(location.search))setTouch(false);   // a real keyboard: hide the on-screen controls
   if(AC&&AC.state==='suspended')AC.resume();
   if(k===' ')bailBuf=8;
   if(k===' '){press('jump');if(state!=='play')startGame()}
@@ -240,10 +272,13 @@ cv.addEventListener('pointerdown',e=>{
   e.preventDefault();if(AC&&AC.state==='suspended')AC.resume();
   const r=cv.getBoundingClientRect();const left=(e.clientX-r.left)<r.width/2;
   if(state!=='play'){startGame();return}
+  if(TOUCH)return;   // with the on-screen controls a stray tap on the picture does nothing
   if(e.pointerType==='mouse'){press('atk')}else{press(left?'jump':'atk');if(left)bailBuf=8}
   if(left||e.pointerType!=='mouse')jumpHeld=left;
 });
-addEventListener('pointerup',()=>{jumpHeld=false});
+addEventListener('pointerup',()=>{if(!TOUCH)jumpHeld=false});
+function unlockAudio(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
+addEventListener('pointerdown',unlockAudio,{passive:true});
 function startGame(){if((state==='over'&&overT<40)||(state==='win'&&moonT<150))return;if(state==='play')return;reset();state='play';jumpBuf=0;atkBuf=0}
 
 /* ---------- spawning ---------- */
@@ -823,7 +858,7 @@ function drawMoonUI(){
   if(state==='win'){
     const a=Math.min(1,moonT/60);ctx.globalAlpha=.45*a;R(0,0,W,H,'#1b1530');ctx.globalAlpha=a;
     ctxt('KONIEC',34,'#ffd23f',7);ctxt('LOMIDREVO JUNIOR',88,'#fff',2);ctxt('BODY '+points,112,'#fff',1);ctxt('REKORD '+best,122,'#c9cfee',1);
-    if(moonT>150&&Math.floor(performance.now()/500)%2)ctxt('STLAČ MEDZERNÍK',142,'#fff',1);
+    if(moonT>150&&Math.floor(performance.now()/500)%2)ctxt(TOUCH?'KLEPNI':'STLAČ MEDZERNÍK',142,'#fff',1);
     ctx.globalAlpha=1;
   }
 }
@@ -958,6 +993,51 @@ function syncCta(){
 $('ctaAgain').onclick=()=>{if(ctaMode==='pause')paused=false;else startGame()};
 renderStrip();setInterval(renderStrip,60000);
 
+/* ---------- on-screen touch controls: joystick (walk / steer), SKOK, SEKERA, pause ---------- */
+const wrap=$('wrap'),stageEl=$('stage'),barEl=$('bar'),joy=$('joy'),knob=$('knob');
+function setTouch(on){TOUCH=on;document.body.classList.toggle('touch',on);layoutTouch()}
+function layoutTouch(){
+  if(!TOUCH){wrap.dataset.mode='none';stageEl.style.width='';return}
+  const vw=window.innerWidth,vh=window.innerHeight,availH=vh-barEl.offsetHeight;
+  let mode,sw,d,b;
+  if(availH-vw*9/16>=120){                       // controls fit under the picture (phone portrait, tablets)
+    mode='below';sw=vw;const rowH=availH-vw*9/16;d=Math.min(rowH-16,vw/2-20,150);b=Math.min(d,(vw/2-72)/2,110);
+  }else{
+    const sw0=Math.min(vw,availH*16/9),swS=Math.min(vw-196,availH*16/9);
+    if(swS>=sw0*.72){                            // controls in the side margins (phone landscape)
+      mode='side';sw=swS;const side=(vw-sw)/2;d=Math.min(side-16,availH-24,140);b=Math.min(side-16,(availH-70)/2.5,110);
+    }else{mode='overlay';sw=sw0;d=Math.min(sw*.2,110);b=Math.min(sw*.16,90)}   // last resort: translucent, over the picture
+  }
+  wrap.dataset.mode=mode;stageEl.style.width=Math.floor(sw)+'px';
+  wrap.style.setProperty('--sw',Math.floor(sw)+'px');
+  wrap.style.setProperty('--d',Math.max(60,Math.floor(d))+'px');wrap.style.setProperty('--b',Math.max(48,Math.floor(b))+'px');
+}
+let joyId=null;
+function joyMove(e){
+  const r=joy.getBoundingClientRect(),rad=r.width/2,dx=(e.clientX-(r.left+rad))/rad,dy=(e.clientY-(r.top+r.height/2))/rad,m=Math.hypot(dx,dy),k=m>1?1/m:1;
+  keys.arrowleft=dx<-.35;keys.arrowright=dx>.35;keys.arrowup=dy<-.35;keys.arrowdown=dy>.35;
+  knob.style.transform='translate('+(dx*k*rad*.55)+'px,'+(dy*k*rad*.55)+'px)';
+}
+function joyEnd(){joyId=null;keys.arrowleft=keys.arrowright=keys.arrowup=keys.arrowdown=false;knob.style.transform=''}
+joy.addEventListener('pointerdown',e=>{e.preventDefault();unlockAudio();try{joy.setPointerCapture(e.pointerId)}catch(_){}joyId=e.pointerId;joyMove(e)});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e)});
+joy.addEventListener('pointerup',e=>{if(e.pointerId===joyId)joyEnd()});
+joy.addEventListener('pointercancel',e=>{if(e.pointerId===joyId)joyEnd()});
+function holdButton(btn,down,up){
+  let id=null;
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();unlockAudio();try{btn.setPointerCapture(e.pointerId)}catch(_){}id=e.pointerId;btn.classList.add('on');down()});
+  const end=e=>{if(id===null||(e.pointerId!==undefined&&e.pointerId!==id))return;id=null;btn.classList.remove('on');if(up)up()};
+  btn.addEventListener('pointerup',end);btn.addEventListener('pointercancel',end);btn.addEventListener('lostpointercapture',end);
+}
+let axeTimer=null;
+holdButton($('btnJump'),()=>{bailBuf=8;press('jump');if(state!=='play')startGame()},()=>{jumpHeld=false});
+holdButton($('btnAxe'),()=>{press('atk');if(state!=='play')startGame();clearInterval(axeTimer);axeTimer=setInterval(()=>press('atk'),120)},()=>{clearInterval(axeTimer)});
+holdButton($('btnPause'),()=>{if(state==='play')paused=!paused});
+window.addEventListener('resize',layoutTouch);window.addEventListener('orientationchange',()=>setTimeout(layoutTouch,200));
+setTouch(TOUCH);window.addEventListener('load',layoutTouch);
+addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!TOUCH)setTouch(true)},{passive:true});   // a finger touches the screen: bring the controls back
+
+
 function render(){
   syncCta();
   ctx.save();
@@ -991,9 +1071,9 @@ function render(){
     ctxt('LOMIDREVO JUNIOR',44,'#ffd23f',4);
     ctxt('VYSEKAJ SA Z TOHO!',72,'#ffffff',2);
     ctxt('SKOK  SEKAJ  LET NA HUSI  PORAZ DRAKA',98,'#fff',1);
-    ctxt('MEDZERNÍK SKOK   X SEKERA   ŠÍPKY POHYB   P PAUZA   M TICHO',160,'#fff',1);
-    ctxt('NA HUSI: ŠÍPKA HORE/DOLE RIADI, X STRIEĽA A SNÁŠA VAJCIA',169,'#ffe08a',1);
-    if(Math.floor(performance.now()/500)%2)ctxt('STLAČ MEDZERNÍK ALEBO KLEPNI',118,'#fff',1);
+    ctxt(TOUCH?'JOYSTICK POHYB   SKOK   SEKERA':'MEDZERNÍK SKOK   X SEKERA   ŠÍPKY POHYB   P PAUZA   M TICHO',160,'#fff',1);
+    ctxt(TOUCH?'NA HUSI: JOYSTICK RIADI, SEKERA STRIEĽA A SNÁŠA VAJCIA':'NA HUSI: ŠÍPKA HORE/DOLE RIADI, X STRIEĽA A SNÁŠA VAJCIA',169,'#ffe08a',1);
+    if(Math.floor(performance.now()/500)%2)ctxt(TOUCH?'KLEPNI PRE ŠTART':'STLAČ MEDZERNÍK ALEBO KLEPNI',118,'#fff',1);
     if(best)ctxt('REKORD '+best,130,'#c9cfee',1);
   }
   if(state==='over'){
@@ -1001,7 +1081,7 @@ function render(){
     ctxt('KONIEC HRY',50,'#ff4b5c',4);
     ctxt('BODY '+points+'   VZDIALENOSŤ '+(dist/20|0)+' M',90,'#fff',1);
     ctxt('REKORD '+best,102,'#ffd23f',1);
-    if(overT>40&&Math.floor(performance.now()/500)%2)ctxt('STLAČ MEDZERNÍK A SKÚS ZNOVA',124,'#fff',1);
+    if(overT>40&&Math.floor(performance.now()/500)%2)ctxt(TOUCH?'KLEPNI A SKÚS ZNOVA':'STLAČ MEDZERNÍK A SKÚS ZNOVA',124,'#fff',1);
   }
   if(paused){ctx.globalAlpha=.5;R(0,0,W,H,'#1b1530');ctx.globalAlpha=1;ctxt('PAUZA',80,'#fff',3)}
 }
