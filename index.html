@@ -6,6 +6,19 @@
 <title>LOMIDREVO JUNIOR</title>
 <meta name="description" content="LOMIDREVO JUNIOR – vysekaj sa z toho! Pixelová bežecká hra so sekerou, husou, drakmi a vesmírom.">
 <meta name="theme-color" content="#1d2233">
+<meta property="og:title" content="Lomidrevo Junior">
+<meta property="og:description" content="Zahraj sa na Lomidrevo a podpor vydanie komiksu">
+<meta property="og:image" content="https://hra.lomidrevojunior.sk/preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://hra.lomidrevojunior.sk">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="sk_SK">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lomidrevo Junior">
+<meta name="twitter:description" content="Zahraj sa na Lomidrevo a podpor vydanie komiksu">
+<meta name="twitter:image" content="https://hra.lomidrevojunior.sk/preview.jpg">
+<link rel="canonical" href="https://hra.lomidrevojunior.sk/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%93%3C/text%3E%3C/svg%3E">
 <style>
   html,body{-webkit-tap-highlight-color:transparent;margin:0;height:100%;background:#1d2233;color:#cfd3e8;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
@@ -164,7 +177,7 @@ const HEART_E=spr([".rr.rr.","rrrrrrr","rrrrrrr",".rrrrr.","..rrr..","...r..."],
 
 /* hero sprite: bald comic hero in orange suit (axe is drawn separately) */
 const HP={k:'#2a1a1a',s:'#f5e6b8',w:'#ffffff',p:'#1b1530',r:'#b0402a',o:'#e0592b',g:'#8d8d96',y:'#d8c25a',b:'#8d8a7a'};
-const HUP=["....ssssss....","...ssssssss...","...sswpsswp...","...ssssssss...","...sssrrsss...","....ssssss....","yyooooooooooyy","sooggggggggoos",".sooggggggoos.","..ooggggggoo..","...ooggggoo...","....yyyyyy....","....oooooo...."];
+const HUP=["....ssssss....","...ssssssss...","...sswpsswp...","...ssssssss...","...sssrrsss...","....ssssss....","yyooooooooooyy","oooggggggggooo",".ooggggggggoo.","..ooggggggoo..","...ooggggoo...","....yyyyyy....","....oooooo...."];
 const HLEG=[["....oo..oo....","...oo....oo...","..oo......oo..","..bb......bb.."],["....oooooo....",".....oooo.....",".....oooo.....",".....bbbb....."],["....oo.ooo....","...oo...oo....","...oo....oo...","...bb....bb..."]];
 const HERO_FRAMES=HLEG.map(l=>spr(HUP.concat(l),HP));
 
@@ -304,13 +317,14 @@ function spawnNext(){
     const p=boss?'coins':pick(['beetle','beetle','wasp','wasp','moth','beam','beam','coins','coins']);
     if(p==='beam'){const o=Math.random()<.65?'h':'v';beams.push({o,p:o==='h'?rnd(14,H-34):rnd(24,W-60),sz:18,t:0,warn:95,fire:34})}
     else if(p==='coins'){const cy=rnd(30,H-50);for(let i=0;i<6;i++)addCoin(x+i*12,cy+Math.sin(i*.9)*14);
-      if(!power&&Math.random()<.25)addCoin(x+80,cy,'p');else if(hearts<MAXH&&Math.random()<.12)addCoin(x+80,cy,'h')}
+      if(!power&&Math.random()<.25)addCoin(x+80,cy,'p');else if(hearts<MAXH&&Math.random()<(hearts<=2?.4:.22))addCoin(x+80,cy,'h')}
     else spawnFoe(p,x,rnd(25,H-50));
     nextSpawn=dist+rnd(80,150);return;
   }
   if(!boss&&dist>=nextBoss){startBoss();nextSpawn=dist+500;return}
   if(!hero.mounted&&!geese.length&&dist>=nextGoose){spawnGoose();nextGoose=dist+(boss?1500:2600);nextSpawn=dist+280;sfx.honk();return}
   const pool=['coins','coins','spider','stump','platform','platform'];
+  if(hearts<MAXH)pool.push('heart');
   if(dist>1800)pool.push('robber','spider');
   if(dist>1200)pool.push('cert','cert');
   if(dist>3500)pool.push('witch','robber');
@@ -318,10 +332,11 @@ function spawnNext(){
   let gap=rnd(120,210);
   if(p==='coins'){
     if(!power&&Math.random()<.2)addCoin(x,GROUND-42,'p');
-    else if(hearts<MAXH&&Math.random()<.12)addCoin(x,GROUND-44,'h');
+    else if(hearts<MAXH&&Math.random()<(hearts<=2?.4:.22))addCoin(x,GROUND-44,'h');
     else for(let i=0;i<5;i++)addCoin(x+i*13,GROUND-10-Math.sin(i/4*Math.PI)*32);
   }
   if(p==='spider')spawnFoe('spider',x,0);
+  if(p==='heart')addCoin(x,GROUND-26,'h');
   if(p==='stump')spawnFoe('stump',x,0);
   if(p==='cert'){spawnFoe('cert',x+4,GROUND-18);decor.push({x:x-2})}
   if(p==='robber')spawnFoe('robber',x,GROUND-18);
@@ -372,14 +387,17 @@ function addPotion(){
   if(potions>=3){potions=0;power=720;setSize(20,26);shake=10;flash=6;popup={s:'MEGA HRDINA!',t:100,c:'#c46bff'};burst(hero.x+10,hero.y+10,['#c46bff','#fff','#ffd23f'],30)}
   else popup={s:'ELIXÍR '+potions+'/3',t:60,c:'#c46bff'};
 }
+function knock(f){if(f.type==='cert'&&!f.dead&&f.hp>0){f.kbT=22;f.kbv=5+(lock?0:speed())*1.6;f.rear=false}}   // a hit throws the devil back (to the right)
+function dropArc(x,y,type){const c=addCoin(x,y,type);if(phase!=='space'){c.fall=true;c.vy=-1.8;c.vx=speed()+clamp((Math.min(W-30,x+150)-x)/34,1.5,7)}return c}
 function killFoe(f){
   f.dead=true;addPts(f.pts);sfx.kill();
   burst(f.x+f.w/2,f.y+f.h/2,f.type==='spider'?['#6b4a8a','#c04bd1']:f.type==='witch'?['#6a2d9c','#7fcf6a']:f.type==='cert'?['#c0392b','#2a1a1a','#ffd23f']:f.type==='beetle'?['#1f8a8a','#4fd1c5','#e8d28a']:f.type==='wasp'?['#ffd23f','#262338','#fff']:f.type==='moth'?['#b36bd8','#f1c9ff','#c9a87a']:['#8a5a2e','#f4f1ea','#ffd23f'],14);
   if(f.type!=='stump')addCoin(f.x+f.w/2-3,f.y+f.h/2-3);
-  if(f.type==='witch'&&!power){const p=addCoin(f.x+f.w/2+4,f.y+f.h/2,'p');if(phase!=='space'){p.fall=true;p.vy=-1.5;p.vx=speed()+2.2}}
+  if(f.type==='witch'&&!power)dropArc(f.x+f.w/2+4,f.y+f.h/2,'p');
+  if(f.type!=='stump'&&f.type!=='witch'&&hearts<MAXH&&Math.random()<.14)dropArc(f.x+f.w/2+4,f.y+f.h/2,'h');
 }
 function axeBox(){
-  const{Lh,bw}=axeDims(axeS),R2=(6.8+11.2*axeS)*.9,px=hero.x+(power?21:12),py=hero.y+(power?13:8);
+  const{Lh,bw}=axeDims(axeS),R2=(6.8+11.2*axeS)*.9,G=gripPos(heroPose()),px=G.x,py=G.y;
   return{x:px-3,y:py-R2,w:R2+6,h:Math.min(R2*1.6,(phase==='space'?H:GROUND+4)-(py-R2))};
 }
 function boom(x,y){
@@ -387,7 +405,7 @@ function boom(x,y){
   booms.push({x,y,t:0});shake=6;burst(x,y,['#fff2a8','#ffb52e','#ff7a1a'],16);beep(120,.25,'sawtooth',.07,-80);
   for(const f of foes){
     if(f.dead||(f.type==='cert'&&f.em<50))continue;
-    if(Math.hypot(f.x+f.w/2-x,f.y+f.h/2-y)<r+f.w/2){f.hp-=d;f.flash=6;if(f.type!=='stump')engage(f);if(f.hp<=0)killFoe(f)}
+    if(Math.hypot(f.x+f.w/2-x,f.y+f.h/2-y)<r+f.w/2){f.hp-=d;f.flash=6;if(f.type!=='stump')engage(f);knock(f);if(f.hp<=0)killFoe(f)}
   }
   if(boss&&boss.state==='fight')for(const h of boss.heads){
     if(h.dead)continue;
@@ -405,7 +423,7 @@ function chop(){
   const a=axeBox(),d=axeDmg();
   for(const f of foes){
     if(f.dead||hero.hitSet.has(f)||(f.type==='cert'&&f.em<50))continue;
-    if(overlap(a,{x:f.x,y:f.y,w:f.w,h:f.h})){hero.hitSet.add(f);f.hp-=d;f.flash=6;sfx.hit();if(f.type!=='stump')engage(f);if(f.hp<=0)killFoe(f);else burst(f.x+f.w/2,f.y+f.h/2,'#fff',4)}
+    if(overlap(a,{x:f.x,y:f.y,w:f.w,h:f.h})){hero.hitSet.add(f);f.hp-=d;f.flash=6;sfx.hit();if(f.type!=='stump')engage(f);knock(f);if(f.hp<=0)killFoe(f);else burst(f.x+f.w/2,f.y+f.h/2,'#fff',4)}
   }
   for(const s of shots){if(!s.dead&&overlap(a,s)){s.dead=true;burst(s.x,s.y,'#fff',5);addPts(1);sfx.hit()}}
   if(boss&&boss.state==='fight')for(const h of boss.heads){
@@ -419,7 +437,7 @@ function chop(){
 function update(){
   t++;
   if(phase==='moon'){t--;updateMoon();return}
-  if(lock&&(lock==='boss'?!(boss&&boss.state==='fight'):(lock.dead||lock.x<-50)))lock=null;
+  if(lock&&(lock==='boss'?!(boss&&boss.state==='fight'):(lock.dead||lock.x<-50||lock.x>W+40)))lock=null;
   const v=lock?0:speed();
   const wt=!power||t%2===0; // time slows down for everyone but the hero while powered up
   if(wt)dist+=v;
@@ -512,7 +530,8 @@ function update(){
     f.t++;if(f.flash>0)f.flash--;
     // ride with platform if standing on one
     const base=phase==='space'?0:v;
-    if(lock===f&&f.vx>0){
+    if(f.type==='witch'&&f.lapped)f.x+=2.4;   // second pass: comes back from the left and leaves to the right
+    else if(lock===f&&f.vx>0){
       const stand={spider:2,witch:30,beetle:6,wasp:5,moth:24,cert:16}[f.type]||0,tx=hero.x+hw+stand;
       f.x-=clamp(f.x-tx,-f.vx*.6,f.vx);
     }else f.x-=base+f.vx;
@@ -528,6 +547,7 @@ function update(){
       else if(f.em<50){f.em++;f.vx=0;f.y=GROUND-18*f.em/50;if(f.em%5===0)parts.push({x:f.x+rnd(0,12),y:GROUND-1,vx:rnd(-.6,.6),vy:rnd(-1.8,-.6),l:20,c:pick(['#b0713f','#5b3d2e'])})}
       else{
         f.vx=f.walk;f.y=GROUND-18;
+        if(f.kbT>0){f.kbT--;f.x+=f.kbv;f.kbv*=.92;f.y=GROUND-18-Math.sin((1-f.kbT/22)*Math.PI)*14;f.rear=false;f.lunge=0;f.at=Math.max(f.at||0,40)}
         const near=f.x-(hero.x+hw)<34;
         if(near||lock===f){
           if(f.at===undefined)f.at=60;
@@ -557,7 +577,8 @@ function update(){
     }
     if(!f.dead&&!(f.type==='cert'&&f.em<50)&&overlap(hb,{x:f.x+2,y:f.y+2,w:f.w-4,h:f.h-3})){if(power)killFoe(f);else hurt(f.type==='stump'?null:f)}
   }
-  foes=foes.filter(f=>!f.dead&&f.x>-50);
+  for(const f of foes)if(f.type==='witch'&&!f.lapped&&!f.dead&&f.x<-30){f.lapped=true;f.x=-36;f.by=rnd(45,95);f.cd=rnd(40,80)}
+  foes=foes.filter(f=>!f.dead&&f.x>-50&&f.x<W+60);
   for(const b of beams){
     b.t++;
     if(b.t<b.warn&&b.t%16===1)beep(760,.05,'square',.025);
@@ -578,7 +599,7 @@ function update(){
       continue;
     }
     if(s.k==='g'){
-      for(const f of foes)if(!f.dead&&!(f.type==='cert'&&f.em<50)&&overlap(s,f)){s.dead=true;f.hp-=axeDmg();f.flash=6;sfx.hit();if(f.type!=='stump')engage(f);if(f.hp<=0)killFoe(f);break}
+      for(const f of foes)if(!f.dead&&!(f.type==='cert'&&f.em<50)&&overlap(s,f)){s.dead=true;f.hp-=axeDmg();f.flash=6;sfx.hit();if(f.type!=='stump')engage(f);knock(f);if(f.hp<=0)killFoe(f);break}
       if(!s.dead&&boss&&boss.state==='fight')for(const h of boss.heads)if(!h.dead&&overlap(s,{x:h.x-4,y:h.y,w:22,h:12})){
         s.dead=true;h.hp-=axeDmg();h.flash=6;sfx.hit();engage('boss');burst(h.x,h.y+5,['#ff7a3a','#ffd23f'],6);
         if(h.hp<=0){h.dead=true;addPts(10);sfx.kill();burst(h.x+8,h.y+5,['#ff7a3a','#ffd23f','#fff'],20);for(let i=0;i<3;i++)addCoin(h.x+i*8,h.y+14)}break}
@@ -653,14 +674,20 @@ function drawSpider(f){
 }
 function drawWitch(f){
   const x=Math.round(f.x),y=Math.round(f.y),w=Math.floor(f.t/8)%2,fl=f.flash>0;
-  const dr=fl?'#fff':'#6a2d9c',hat=fl?'#fff':'#241a3a';
+  const dr=fl?'#fff':'#6a2d9c',sk=fl?'#fff':'#f6dcc3',sk2=fl?'#fff':'#e2bb9a',hr=fl?'#fff':'#b9bdc6',hr2=fl?'#fff':'#8d929c';
+  if(f.lapped){ctx.save();ctx.translate(x*2+30,0);ctx.scale(-1,1)}   // flying to the right: face the other way
   R(x-2,y+17,32,2,'#8b5a2e');R(x-2,y+17,32,1,'#b07a3f');
   R(x+27,y+15+w,6,6,'#e0b44a');R(x+29,y+15+w,1,6,'#b88a2a');R(x+31,y+16,1,5,'#b88a2a');
-  R(x+13,y+9+w,4,7,'#e8742c');R(x+16,y+11,3,5+w,'#e8742c');
+  // two short grey braids hanging behind her head
+  for(let k=0;k<3;k++){const c=k%2?hr2:hr;R(x+14,y+10+k*2+w,3,2,c);R(x+17,y+11+k*2+w,3,2,c)}
+  R(x+14,y+16+w,3,1,'#c0392b');R(x+17,y+17+w,3,1,'#c0392b');
+  // dress
   R(x+7,y+13,9,5,dr);R(x+9,y+17,5,2,'#241a3a');
-  R(x+6,y+8,8,5,fl?'#fff':'#7fcf6a');R(x+3,y+10,4,2,fl?'#fff':'#7fcf6a');R(x+8,y+9,1,1,'#1b1530');
-  R(x+8,y,2,3,hat);R(x+7,y+3,4,3,hat);R(x+5,y+6,8,2,hat);R(x+3,y+7,13,2,hat);
+  // pale face with a small nose, grey hair (no hat)
+  R(x+6,y+8,8,5,sk);R(x+3,y+10,4,2,sk2);R(x+8,y+9,1,1,'#1b1530');R(x+9,y+12,3,1,'#c98a7a');
+  R(x+6,y+5,9,3,hr);R(x+5,y+6,2,5,hr);R(x+13,y+7,3,5,hr);R(x+7,y+5,5,1,hr2);
   if(f.fire>0)R(x-1,y+20,4,3,'#c04bd1');
+  if(f.lapped)ctx.restore();
 }
 function drawRobber(f){
   const x=Math.round(f.x),y=Math.round(f.y);
@@ -686,15 +713,40 @@ function drawGoose(g){
   ctx.globalAlpha=1;
   if(flip)ctx.restore();
 }
+function heroPose(){
+  const idle=hero.mounted||lock||phase==='space'||(phase==='moon'&&moonStage!=='walk'&&moonStage!=='board'),bob=hero.onGround&&!idle?(Math.floor(t/6)%2):0,k=power?20/12:1;
+  const dw=Math.round(14*k),dh=Math.round(17*k);
+  return{idle,bob,k,dw,dh,ox:Math.round(hero.x+hw/2-dw/2),oy:Math.round(hero.y+hh-dh+k-bob*k)};
+}
+// The arms swing from the shoulder (upper arm + forearm with an elbow). Angles are in sprite space, 0 = pointing right, positive = down.
+function frontArmAngle(){
+  if(hero.swing<=0)return .28;                                   // carrying the axe
+  const p=1-hero.swing/16,e=p<.3?p/.3*.15:.15+(p-.3)/.7*.85;
+  return p<.3?.28-(p/.3)*1.35:-1.07+((e-.15)/.85)*2.5;           // wind up (arm lifts), then chop down and forward
+}
+function gripPos(P){const phi=frontArmAngle(),R=hero.swing>0?5.9:5.4;return{x:P.ox+(11+R*Math.cos(phi))*P.k,y:P.oy+(7.8+R*Math.sin(phi))*P.k}}   // where the front hand holds the axe
+function drawArm(P,sx,sy,hx,hy,bend){
+  const k=P.k,L=3.4,sz=Math.max(2,Math.round(2*k));
+  let dx=hx-sx,dy=hy-sy,d=Math.hypot(dx,dy)||.01;
+  if(d>2*L-.2){hx=sx+dx/d*(2*L-.2);hy=sy+dy/d*(2*L-.2);dx=hx-sx;dy=hy-sy;d=2*L-.2}
+  const h=Math.sqrt(L*L-d*d/4),ex=sx+dx/2-dy/d*bend*h,ey=sy+dy/2+dx/d*bend*h;   // elbow bends down/back
+  const seg2=(ax,ay,bx,by,c)=>{const n=Math.max(1,Math.round(Math.hypot(bx-ax,by-ay)*k));for(let i=0;i<=n;i++){const u=i/n;R(P.ox+(ax+(bx-ax)*u)*k-sz/2,P.oy+(ay+(by-ay)*u)*k-sz/2,sz,sz,c)}};
+  seg2(sx,sy,ex,ey,'#e0592b');seg2(ex,ey,hx,hy,'#e0592b');   // the whole arm is suit-coloured, only the hand is bare
+  const hs=Math.max(2,Math.round(2.4*k));R(P.ox+hx*k-hs/2,P.oy+hy*k-hs/2,hs,hs,'#f5e6b8');
+}
 function drawHero(){
   if(heroHidden)return;
   if(inv>0&&Math.floor(inv/4)%2)return;
-  const idle=hero.mounted||lock||phase==='space'||(phase==='moon'&&moonStage!=='walk'&&moonStage!=='board'),bob=hero.onGround&&!idle?(Math.floor(t/6)%2):0,k=power?20/12:1;
+  const P=heroPose(),k=P.k,idle=P.idle;
   if(hero.jet&&(phase==='space'||(phase==='moon'&&(moonStage==='approach'||moonStage==='land')))){R(hero.x-3*k,hero.y+5*k,4*k,8*k,'#8d8d96');R(hero.x-3*k,hero.y+5*k,4*k,2*k,'#c9ced8');R(hero.x-3*k,hero.y+11*k,4*k,2*k,'#d9572b');const fl=2+(t%3);R(hero.x-2*k,hero.y+13*k,2*k,fl*k,'#ffb52e');R(hero.x-1.5*k,hero.y+13*k,k,(fl-1)*k,'#fff2a8')}
   if(power&&Math.floor(t/4)%2){ctx.globalAlpha=.35;R(hero.x-3,hero.y-3,hw+6,hh+6,'#c46bff');ctx.globalAlpha=1}
-  const fr=idle?1:!hero.onGround?0:[0,1,2,1][Math.floor(t/5)%4],im=HERO_FRAMES[fr],w=14,h=17;
-  const dw=Math.round(w*k),dh=Math.round(h*k);
-  ctx.drawImage(im,Math.round(hero.x+hw/2-dw/2),Math.round(hero.y+hh-dh+k-bob*k),dw,dh);
+  const fr=idle?1:!hero.onGround?0:[0,1,2,1][Math.floor(t/5)%4];
+  // back arm swings with the run (behind the body)
+  // back arm: swings like a pendulum while running, trails behind in the air, goes back when the axe chops
+  const sp=hero.swing>0?Math.sin((1-hero.swing/16)*Math.PI):0,th=(!idle&&hero.onGround?Math.sin(t*.33)*1.0:!idle?-1.2:.05)-sp*.9;
+  drawArm(P,2.5,7.8,2.5+5.6*Math.sin(th),7.8+5.6*Math.cos(th),1);
+  ctx.drawImage(HERO_FRAMES[fr],P.ox,P.oy,P.dw,P.dh);
+  const G=gripPos(P);drawArm(P,11,7.8,(G.x-P.ox)/k,(G.y-P.oy)/k,1);   // front arm reaches out to the axe
 }
 const AXE_IMGS=[{"w": 11, "h": 18, "px": 0.5, "py": 15.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAASCAYAAACNdSR1AAAAiklEQVR4nGNgIAA8Mlb9J6QGrvDIrW//YRqYGHAAj4xV/80t1FDEGEFEjonM/ylnnjDiUuhqpcbQ0reFgQXEuWPSx+BhwgB3G7qJMMBCSAEywOlm2it2hXpux4wwRribT564haIIqx9AwQbCDAQiBATgJqMDkLUMDKv+Q2gi3LwDSSFBxehgKCoGAJNZNLlOfyxeAAAAAElFTkSuQmCC"}, {"w": 14, "h": 23, "px": 1.0, "py": 20.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAXCAYAAAA7kX6CAAAAsUlEQVR4nGNgIBJ4ZKz6T6xaFE1Hbn37j6yZiYEA8MhY9d/cQo1h97FbDDVFPnCbCWrEBRhBRI6JDNiUKWeegPkg4AE1GWQbMnC1UmNo6dvCwIIsiOwHczQN6ACs8Y5JH1ihMAPxgIkEtUNJoys0RHfMCGMk20YWdNOQgTlSlCDbBteocqaIYUVUEcMOpAQAAdgTAQgwwlINesrBljBgtoEASsrBBXYgaRgi8YgMRoJGAFTqPoKuVmwpAAAAAElFTkSuQmCC"}, {"w": 18, "h": 29, "px": 1.5, "py": 26.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAdCAYAAACnmDyCAAAA5klEQVR4nGNgIAN4ZKz6T44+DEOO3Pr2H90wJgYSgEfGqv/mFmoMu4/dYqgp8kFxGUkG4QNMpLoGBtBdxcJAAHhAFSIbgg0wgogcExm4X6ececJIigGuVmoMLX1bIC4CaQZpBDn1Tt8WogxAByheA/mbVANQAhs9IMkBTBTpHnQGuUJjbMeMMMbB4SKc0Q9zKjIwxxGbyN7CSNl3TPrgEjDggSWFoxuC4SKVM0UYNu+AK8af1ghmWlQDIa47eeIWhssZYF5DzrjkACZKNNPGoBwKvURbr+VQ4DomqjiHYTAaBAbUSJAAA91mcVCbXKQAAAAASUVORK5CYII="}, {"w": 22, "h": 35, "px": 1.7, "py": 32.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAjCAYAAACQA/olAAABDklEQVR4nO2UPQ6CQBBGh43HsOYEJBp7Ewpq4hEoqKwtrakoOIEFNQUJrTGaeAJCaWtru2b5WQmMwO5iQeQlVJA33w6zA6CI6YRU1YFKz+mLYnICkphOSFdrHZJLCoe91UouLa6DyYlK2i7IWNKkkXohIgQA6EtawcWuseT98e8PTVbYElfsTilkXsSLiAirdgCElIszw8sl7KVoOoxRxg1jFk9MvN3ocPQiiANb+21ic8BSEUnLxdhHt2vKHxn4zXv6Vn6dWVUmqyoXfPYsdrJmWobWtYAwmm3DpAzhnxcHtjakPVJTEZfyb2mFFn2TQhZSTMpQmuP4i1RZ3MUExW5thv+8FTCLS0jfNpPlDayYg+BA9tNdAAAAAElFTkSuQmCC"}, {"w": 25, "h": 41, "px": 2.0, "py": 38.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAABCUlEQVR4nO2VMQ6CMBSGHy/cwNWZE5Bg3EkYnD0Dg5OzozMTg2fo7EDCaowmnoA4egbXGqJtsGlLCq+DkW9iIP/H/4BXACKynHGqLKPg1Dy5SYRARH1uYLddaRuNlmQ548kisoqQSiDQiZBSYAJ9CGqlDfpsIAjFxSaeyxmWt0cACuKpXAVfEl1gF9dwMTIAxqXkHhcyaAa0IHGelknixCTpJV1GsC+OUB3Wwe82STstvElU0HeLllBd3+ImE8mALRyoa9606gW2la9rIZu4UMkAz8evkF0vDfS1GP3iq4/IJhg0LpV3MOMmAdknXFkEZJI+JokTqP7tPkDfgpZJ8q+SUjmgbAfWUF5B8IDqwOtRJgAAAABJRU5ErkJggg=="}, {"w": 29, "h": 47, "px": 3.0, "py": 44.5, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAvCAYAAAAfIcGpAAABOklEQVR4nO2XsQ6CMBCGy4U3cHX2CUg07iQOzj6DA5OzozMTg8/A7GDS1RhNfALi6DO41hAplqZX0HqNUb8BBkg//uuFA8YImMxzQbGuVbgrrsImBgox3xdsuZiiid8qLSXD0aBVDBRCCUfEQCW0AdRCbkgLPhM6S58Rci1tqF5Mon5dgux0CTBZeX4loSQ0CalkkkZSFb3NXWW8KjFjuQjVcqr71GN0gGsnOkl9Al5tFX/pd0jj8YCt0g3brmfBdyf1Lo2V0nqT6oDvlOiUkTdiuL6jA9M8PUdp48lena2xIWUtNQ1w7MuhqxwTWod4Fx4LNseiTfi2RioXPx4K/927rcRtKZ3Lq3MX5cImRBupSxO5AJSLY/yl/qVJyy8GiZQaoE712XtKDZAbfluaEb/cjdLyoIupH+QGf6ij1O2+hPAAAAAASUVORK5CYII="}];
 // the axe is the user's own drawing, pre-pixelated at five sizes; the axe grows by switching to a bigger one
@@ -707,11 +759,12 @@ function axeSprite(){
 function drawAxe(){
   if(heroHidden)return;
   if(inv>0&&Math.floor(inv/4)%2)return;
-  const a=axeSprite(),k=1,px=hero.x+(power?21:12),py=hero.y+(power?13:8)+(hero.onGround&&!hero.mounted?(Math.floor(t/6)%2)*-1:0);
+  const a=axeSprite(),k=1,P=heroPose(),G=gripPos(P),px=G.x,py=G.y;
   let ang=-.5+Math.sin(t*.12)*.05;
   if(hero.swing>0){const p=1-hero.swing/16,e=p<.3?p/.3*.15:.15+(p-.3)/.7*.85;ang=-1.15+e*2.9;if(p<.3)ang=-1.15-(p/.3)*.25+0}
   ctx.save();ctx.translate(Math.round(px),Math.round(py));ctx.rotate(ang);
   if(a.img.complete)ctx.drawImage(a.img,-a.px*k,-a.py*k,a.w*k,a.h*k);ctx.restore();
+  const hs=Math.max(3,Math.round(3*P.k));R(px-hs/2,py-hs/2,hs,hs,'#f5e6b8');R(px-hs/2,py+hs/2-1,hs,1,'#e3b86a');   // the fist closes round the handle
 }
 function drawShot(s){
   if(s.k==='e'){R(s.x+1,s.y,3,6,'#fff');R(s.x,s.y+1,5,4,'#fff');R(s.x+3,s.y+2,2,3,'#e0d2b0');return}
